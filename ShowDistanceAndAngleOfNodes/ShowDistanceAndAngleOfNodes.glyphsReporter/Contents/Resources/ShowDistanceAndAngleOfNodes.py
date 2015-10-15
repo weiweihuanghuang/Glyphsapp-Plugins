@@ -95,21 +95,21 @@ class ShowDistanceAndAngleOfNodes ( NSObject, GlyphsReporterProtocol ):
 				badgeHeight = 23 / self.getScale()
 				badgeRadius = 8 / self.getScale()
 				
-				### HACK TO KEEP THE TEXT IN ITS BADGE FOR ALL ZOOMS
-				badgeAlpha = .75
-				badgeFontColor = 1, 1, 1, 1
-				if self.getScale() >= 6:
-					shiftY = - 0.5
-				if self.getScale() >= 15:
-					badgeHeight = badgeHeight*1.5
-					badgeWidth = badgeWidth*1.5
-				if self.getScale() >= 20:
-					shiftY = - 1
-				if self.getScale() >= 25:
-					badgeAlpha = 0
-					badgeFontColor = 0, .5, 1, .75
-				else:
-					shiftY = 0
+				# ### HACK TO KEEP THE TEXT IN ITS BADGE FOR ALL ZOOMS
+				# badgeAlpha = .75
+				# badgeFontColor = 1, 1, 1, 1
+				# if self.getScale() >= 6:
+				# 	shiftY = - 0.5
+				# if self.getScale() >= 15:
+				# 	badgeHeight = badgeHeight*1.5
+				# 	badgeWidth = badgeWidth*1.5
+				# if self.getScale() >= 20:
+				# 	shiftY = - 1
+				# if self.getScale() >= 25:
+				# 	badgeAlpha = 0
+				# 	badgeFontColor = 0, .5, 1, .75
+				# else:
+				# 	shiftY = 0
 
 
 				'''
@@ -129,11 +129,15 @@ class ShowDistanceAndAngleOfNodes ( NSObject, GlyphsReporterProtocol ):
 				elif degs == -90:
 					degs = 90
 
-				### math.floor() to avoid jumpin position of badge & text
-				self.drawCoveringBadge( math.floor(xAverage) - badgeWidth/2, math.floor(yAverage) - badgeHeight, badgeWidth, badgeHeight*2, badgeRadius, badgeAlpha)
+				# ### math.floor() to avoid jumpin position of badge & text
+				# self.drawCoveringBadge( math.floor(xAverage) - badgeWidth/2, math.floor(yAverage) - badgeHeight, badgeWidth, badgeHeight*2, badgeRadius, badgeAlpha)
+
+				# Text Position relative to viewport
+				( ( tX, tY ), ( tWidth, tHeight ) ) = self.controller.graphicView().visibleRect()
+				textPosition = ( ( math.floor(tX)+30 )/self.getScale(), ( (tY + tHeight + 30)/self.getScale() ) )
 
 				### is this one slowing down?
-				self.drawTextAtPoint( u"%s\n%s°" % ( round(dist, 1), round(degs, 1) ), (math.floor(xAverage), math.floor(yAverage) + shiftY), fontSize=10.0, fontColor=NSColor.colorWithCalibratedRed_green_blue_alpha_( *badgeFontColor) )
+				self.drawTextAtPoint( u"↥ %s\n∠ %s°" % ( round(dist, 1), round(degs, 1) ), textPosition, fontSize=10.0, fontColor=NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 1) )
 
 			else:
 				pass
