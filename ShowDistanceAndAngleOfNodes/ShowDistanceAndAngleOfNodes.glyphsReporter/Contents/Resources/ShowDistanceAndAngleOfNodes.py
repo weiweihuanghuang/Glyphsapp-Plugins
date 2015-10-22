@@ -95,21 +95,21 @@ class ShowDistanceAndAngleOfNodes ( NSObject, GlyphsReporterProtocol ):
 				badgeHeight = 23 / self.getScale()
 				badgeRadius = 8 / self.getScale()
 				
-				# ### HACK TO KEEP THE TEXT IN ITS BADGE FOR ALL ZOOMS
-				# badgeAlpha = .75
-				# badgeFontColor = 1, 1, 1, 1
-				# if self.getScale() >= 6:
-				# 	shiftY = - 0.5
-				# if self.getScale() >= 15:
-				# 	badgeHeight = badgeHeight*1.5
-				# 	badgeWidth = badgeWidth*1.5
-				# if self.getScale() >= 20:
-				# 	shiftY = - 1
-				# if self.getScale() >= 25:
-				# 	badgeAlpha = 0
-				# 	badgeFontColor = 0, .5, 1, .75
-				# else:
-				# 	shiftY = 0
+				### HACK TO KEEP THE TEXT IN ITS BADGE FOR ALL ZOOMS
+				badgeAlpha = .75
+				badgeFontColor = 1, 1, 1, 1
+				if self.getScale() >= 6:
+					shiftY = - 0.5
+				if self.getScale() >= 15:
+					badgeHeight = badgeHeight*1.5
+					badgeWidth = badgeWidth*1.5
+				if self.getScale() >= 20:
+					shiftY = - 1
+				if self.getScale() >= 25:
+					badgeAlpha = 0
+					badgeFontColor = 0, .5, 1, .75
+				else:
+					shiftY = 0
 
 
 				'''
@@ -129,15 +129,16 @@ class ShowDistanceAndAngleOfNodes ( NSObject, GlyphsReporterProtocol ):
 				elif degs == -90:
 					degs = 90
 
-				# ### math.floor() to avoid jumpin position of badge & text
-				# self.drawCoveringBadge( math.floor(xAverage) - badgeWidth/2, math.floor(yAverage) - badgeHeight, badgeWidth, badgeHeight*2, badgeRadius, badgeAlpha)
+				view = self.controller.graphicView()
+				Visible = view.visibleRect()
+				activePosition = view.activePosition()
+				# bottom left corner
+				# textPosition = NSMakePoint(math.floor((Visible.origin.x + 10 - activePosition.x) / self.getScale()), math.floor((NSMinY(Visible) - activePosition.y + 10) / self.getScale()))
 
-				# Text Position relative to viewport
-				( ( tX, tY ), ( tWidth, tHeight ) ) = self.controller.graphicView().visibleRect()
-				textPosition = ( ( math.floor(tX)+30 )/self.getScale(), ( (tY + tHeight + 30)/self.getScale() ) )
+				# top left corner
+				textPosition = NSMakePoint(math.floor((Visible.origin.x + 10 - activePosition.x) / self.getScale()), math.floor((NSMaxY(Visible) - activePosition.y - 40) / self.getScale()))
 
-				### is this one slowing down?
-				self.drawTextAtPoint( u"↥ %s\n∠ %s°" % ( round(dist, 1), round(degs, 1) ), textPosition, fontSize=10.0, fontColor=NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 1) )
+				self.drawTextAtPoint( u"↥ %s\n∠ %s°" % ( round(dist, 1), round(degs, 1) ), textPosition, fontSize=12, fontColor=NSColor.colorWithCalibratedRed_green_blue_alpha_( 0, 0, 0, 1 ) )
 
 			else:
 				pass
@@ -156,8 +157,11 @@ class ShowDistanceAndAngleOfNodes ( NSObject, GlyphsReporterProtocol ):
 			pass
 		except Exception as e:
 			self.logToConsole( "drawBackgroundForInactiveLayer_: %s" % str(e) )
-	
-	def drawTextAtPoint( self, text, textPosition, fontSize=10.0, fontColor=NSColor.colorWithCalibratedRed_green_blue_alpha_( 1, 1, 1, 1 ) ):
+
+	def drawTextAtPoint( self, text, textPosition, fontSize=9.0, fontColor=NSColor.brownColor() ):
+		"""
+		Use self.drawTextAtPoint( "blabla", myNSPoint ) to display left-aligned text at myNSPoint.
+		"""
 		try:
 			glyphEditView = self.controller.graphicView()
 			currentZoom = self.getScale()
@@ -165,11 +169,12 @@ class ShowDistanceAndAngleOfNodes ( NSObject, GlyphsReporterProtocol ):
 				NSFontAttributeName: NSFont.labelFontOfSize_( fontSize/currentZoom ),
 				NSForegroundColorAttributeName: fontColor }
 			displayText = NSAttributedString.alloc().initWithString_attributes_( text, fontAttributes )
-			textAlignment = 4 # top left: 6, top center: 7, top right: 8, center left: 3, center center: 4, center right: 5, bottom left: 0, bottom center: 1, bottom right: 2
-			glyphEditView.drawText_atPoint_alignment_( displayText, textPosition, textAlignment )
+			displayText.drawAtPoint_(textPosition)
 		except Exception as e:
-			self.logToConsole( "drawTextAtPoint: %s" % str(e) )
-	
+			import traceback
+			print traceback.format_exc()
+
+
 	def needsExtraMainOutlineDrawingForInactiveLayer_( self, Layer ):
 		return True
 	
